@@ -134,7 +134,7 @@ HTMLBEG
 
   <h3>Использование данного сайта для тестирования</h3>
 
-  <h4>Регистрация свой электронной подписи на сайте</h4>
+  <h4>Регистрация своей электронной подписи на сайте</h4>
   <p>
   1. Переходим на страницу <a href="/register">"Регистрация электронной подписи"</a>;<br>
   2. На смартфоне нажимаем кнопку "Регистрация на сайте";<br>
@@ -197,7 +197,7 @@ HTML
       my $sr = new String::Random;
       
       my $doc = {};
-      my $tmpl = ['LIST', 'Первые данные документа', 'Вторые данные докумнта', 'Третьи данные документа', 'Большой текст документа'];
+      my $tmpl = ['LIST', 'Первые данные документа', 'Вторые данные докумнта', 'Третьи данные документа', 'Текст: раз два три'];
       my $data = [];
 
       push(@{$data}, 'Данные с '.$sr->randpattern("cccnnn"));
@@ -233,7 +233,7 @@ HTML
 
       get_all_docs();
 
-      print "<table border=\"1\" style=\"border: 4px double black; border-collapse: collapse; padding: 8px; margin: 8px; font-family:monospace;\" ><tr><td>Статус</td><td>ID</td><td width=\"20%\">Данные</td><td width=\"20%\">Шаблон</td><td width=\"40%\">Подпись</td></tr>";
+      print "<table border=\"1\" style=\"border: 4px double black; border-collapse: collapse; padding: 8px; margin: 8px; font-family:monospace;\" ><tr align=\"center\"><td width=\"10%\">Статус</td><td width=\"5%\">ID</td><td width=\"45%\">Данные</td><td width=\"30%\">Шаблон</td><td width=\"10%\">Подпись</td></tr>";
       
       my $c = $dbh->prepare('SELECT * FROM documents WHERE code = ?');
       $c->execute($code);
@@ -241,16 +241,19 @@ HTML
         print "<tr>";
 
         if (defined($doc->{doc_sign}) && ($doc->{doc_sign} ne '')) {
-          print "<td><b>ПОДПИСАН</b></td>";
+          print "<td align=\"center\"><b>ПОДПИСАН</b></td>";
         } else {
-          print "<td><b>Ожидает подписания</b></td>";
+          print "<td align=\"center\"><b>Ожидает подписания</b></td>";
         };
 
         $doc->{doc_template} =~ s/\n/\<br\>/g;
-        print "<td>".$doc->{id}."</td>";
+        $doc->{doc_sign} = split_base64($doc->{doc_sign});
+        $doc->{doc_sign} =~ s/\n/\<br\>/g;
+        
+        print "<td align=\"center\">".$doc->{id}."</td>";
         print "<td>".$doc->{doc_data}."</td>";
         print "<td>".$doc->{doc_template}."</td>";
-        print "<td>".split_base64($doc->{doc_sign})."</td>";
+        print "<td style=\"font-size: 6px;\">".$doc->{doc_sign}."</td>";
         
         print "</tr>";
       };
