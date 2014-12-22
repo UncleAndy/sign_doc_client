@@ -184,6 +184,8 @@ HTML
           <a href="/sign_request?code=$code">Генерация случайного документа на подписание</a><br>
           <a href="/sign_big_request?code=$code">Генерация большого документа на подписание</a><br>
           <a href="/sign_bad_template_request?code=$code">Генерация документа на подписание с неполным шаблоном</a><br>
+          <a href="/sign_html_template_request?code=$code">Генерация документа на подписание с html шаблоном</a><br>
+          <a href="/sign_html_bad_template_request?code=$code">Генерация документа на подписание с html шаблоном с неполным выводом данных</a><br>
 HTML
       } else {
         print <<HTML;
@@ -305,6 +307,100 @@ HTML
 <a href="/docs_list?code=$code">Проверка списка документов</a><br>
 HTML
     }
+    case '/sign_html_template_request' {
+      my $code = $query->param('code');
+
+      my $sr = new String::Random;
+
+      my $doc = {};
+      my $tmpl = <<HTML_TEMPL;
+HTML
+<h1>Пример документа оформленного с помощью HTML шаблона</h1>
+<p>Пользователь согласен подписать данные: <%data_0%></p>
+<h2> Остальные данные рядом<h2>
+<p>
+<%data_1%><br>
+<%data_2%><br>
+<%data_3%>
+</p>
+<p>И другие данные</p>
+HTML_TEMPL
+      my $data = [];
+
+      push(@{$data}, 'Данные с '.$sr->randpattern("cccnnn"));
+      push(@{$data}, 'Данные с '.$sr->randpattern("cccnnn"));
+      push(@{$data}, 'Данные с '.$sr->randpattern("cccnnn"));
+      push(@{$data}, "Текст документа");
+      $doc->{type} = "SIGN_REQUEST";
+      $doc->{site} = 'test';
+      $doc->{dec_data} = js::to_json($data);
+      $doc->{template} = $tmpl;
+
+      $doc->{doc_id} = generate_doc_id();
+
+      $dbh->do('INSERT INTO documents (id, code, doc_data, doc_template) VALUES (?, ?, ?, ?)', undef, $doc->{doc_id}, $code, $doc->{dec_data}, $doc->{template});
+      my $dberr = $dbh->errstr;
+      $dbh->commit;
+
+      if (defined($dberr) && ($dberr ne '')) {
+        print "Ошибка БД при создании нового документа<br>";
+        warn $dberr;
+      } else {
+        send_sign_request($code, $doc);
+      };
+
+      print <<HTML
+Документ для подписания отправлен. Проверьте новые документы в мобильно приложении<br>
+<br>
+<a href="/docs_list?code=$code">Проверка списка документов</a><br>
+HTML
+    }
+    case '/sign_html_bad_template_request' {
+      my $code = $query->param('code');
+
+      my $sr = new String::Random;
+
+      my $doc = {};
+      my $tmpl = <<HTML_TEMPL;
+HTML
+<h1>Пример документа оформленного с помощью HTML шаблона</h1>
+<p>Пользователь согласен подписать данные: <%data_0%></p>
+<h2> Остальные данные рядом<h2>
+<p>
+<%data_3%>
+</p>
+<p>И другие данные</p>
+HTML_TEMPL
+      my $data = [];
+
+      push(@{$data}, 'Данные с '.$sr->randpattern("cccnnn"));
+      push(@{$data}, 'Данные с '.$sr->randpattern("cccnnn"));
+      push(@{$data}, 'Данные с '.$sr->randpattern("cccnnn"));
+      push(@{$data}, "Текст документа");
+      $doc->{type} = "SIGN_REQUEST";
+      $doc->{site} = 'test';
+      $doc->{dec_data} = js::to_json($data);
+      $doc->{template} = $tmpl;
+
+      $doc->{doc_id} = generate_doc_id();
+
+      $dbh->do('INSERT INTO documents (id, code, doc_data, doc_template) VALUES (?, ?, ?, ?)', undef, $doc->{doc_id}, $code, $doc->{dec_data}, $doc->{template});
+      my $dberr = $dbh->errstr;
+      $dbh->commit;
+
+      if (defined($dberr) && ($dberr ne '')) {
+        print "Ошибка БД при создании нового документа<br>";
+        warn $dberr;
+      } else {
+        send_sign_request($code, $doc);
+      };
+
+      print <<HTML
+Документ для подписания отправлен. Проверьте новые документы в мобильно приложении<br>
+<br>
+<a href="/docs_list?code=$code">Проверка списка документов</a><br>
+HTML
+    }
     case '/docs_list' {
       my $code = $query->param('code');
 
@@ -342,6 +438,8 @@ HTML
       <a href="/sign_request?code=$code">Генерация случайного документа на подписание</a><br>
       <a href="/sign_big_request?code=$code">Генерация БОЛЬШОГО документа на подписание</a><br>
       <a href="/sign_bad_template_request?code=$code">Генерация документа на подписание с неполным шаблоном</a><br>
+      <a href="/sign_html_template_request?code=$code">Генерация документа на подписание с html шаблоном</a><br>
+      <a href="/sign_html_bad_template_request?code=$code">Генерация документа на подписание с html шаблоном с неполным выводом данных</a><br>
 HTML
     }
     else {
@@ -435,7 +533,7 @@ sub send_sign_request {
 };
 
 sub get_all_docs {
-  get_docs('12345678', \&get_one_doc);
+  get_docs('test', '12345678', \&get_one_doc);
 };
 
 sub get_one_doc {
