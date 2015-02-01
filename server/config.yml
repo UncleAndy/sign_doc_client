@@ -2,11 +2,12 @@ base_path: '/home/andy/projects/gplvote.signdoc.client'
 pid_file: '/var/run/gplvote.signdoc.client.pid'
 log_file: '/var/log/projects/gplvote.signdoc.client.log'
 cmd_path: '/home/andy/projects/gplvote.signdoc.client/server/signdoc-client-server.pl "/home/andy/projects/gplvote.signdoc.client/server/config.yml"'
+tmpl_path: '/home/andy/projects/gplvote.signdoc.client/server/.tmpls'
 product_name: 'gplvote.client.signdoc'
 site: 'client_signdoc.gplvote.org'
 fcgi:
   host: '127.0.0.1'
-  port: '9002'
+  port: '9003'
   listen_queue: 128
   nprocs: 1
   min_nprocs: 1

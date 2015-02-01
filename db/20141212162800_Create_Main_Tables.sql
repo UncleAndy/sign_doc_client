@@ -12,3 +12,13 @@ CREATE TABLE registrations (
     code character varying(128),
     public_key text
 );
+
+CREATE TABLE signs (
+    id BIGSERIAL NOT NULL PRIMARY KEY,
+    doc_id VARCHAR(128),
+    user_key_id VARCHAR(128),
+    sign TEXT,
+    public_key TEXT,
+    t_sign TIMESTAMP default NOW()
+);
+CREATE INDEX idx_signs ON signs (doc_id, user_key_id);
