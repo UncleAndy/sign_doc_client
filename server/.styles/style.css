@@ -293,3 +293,19 @@ h3.subscribe {
 .block_info a {
     padding: 4px;
 }
+
+.qrbutton {
+    display: block; 
+    clear: left;
+    width: 100px;
+    height: 24px;
+    line-height: 24px;
+    background: url('/images/qr-code-link.png') top left no-repeat;
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 3px #475d05;
+    text-decoration: none;
+    text-align: left;
+}

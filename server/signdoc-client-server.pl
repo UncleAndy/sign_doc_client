@@ -355,7 +355,7 @@ SQL
         warn $dberr;
       };
 
-      my $qrcode = HTML::QRCode->new->plot('signdoc://signdoc-client.gplvote.org/get_doc?id='.$doc->{doc_id}.'&mode=direct');
+      my $qrcode = html_qrcode('signdoc://signdoc-client.gplvote.org/get_doc?id='.$doc->{doc_id}.'&mode=direct');
       do_template($query, 'karkas.tpl', { contentsection => 'c_confirm_action.tpl', qrcode => $qrcode, code => $code, doc_id => $doc->{doc_id} });
     }    
     case '/confirm_sample/action_check' {
@@ -722,5 +722,5 @@ sub do_template
 sub html_qrcode {
     my ($data) = @_;
     
-    return(HTML::QRCode->new->plot($data));
+    return('<table><tr><td align="center"><a href="'.$data.'" class="qrbutton"></a></td></tr><tr><td>'.HTML::QRCode->new->plot($data).'</td></tr></table>');
 };
