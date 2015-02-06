@@ -335,10 +335,11 @@ SQL
       my $sr = new String::Random;
 
       my $doc = {};
-      my $tmpl = ['LIST', 'Подтверждаемое действие:'];
+      my $tmpl = ['LIST', 'Подтверждаемое действие:', 'Просто заполнение данными'];
       my $data = [];
 
       push(@{$data}, 'Изменение пароля для кода '.$code);
+      push(@{$data}, 'Д' x 300);
       $doc->{type} = "SIGN_REQUEST";
       $doc->{site} = 'test';
       $doc->{dec_data} = js::to_json($data);
@@ -389,7 +390,7 @@ SQL
       $c->finish;
 
       if (!defined($pub_key) || ($pub_key eq '')) {
-        if (user_sign_is_valid($reg_doc->{public_key}, $reg_doc->{sign}, $reg_doc->{code})) {
+        if (user_sign_is_valid($reg_doc->{public_key}, $reg_doc->{sign}, $reg_doc->{code}, $cfg->{sha256signhash})) {
           $dbh->do('UPDATE registrations SET public_key = ? WHERE id = ?', undef, $reg_doc->{public_key}, $id);
           $dbh->commit;
         } else {
@@ -624,7 +625,7 @@ sub get_one_doc {
       $c->finish;
 
       if (!defined($pub_key) || ($pub_key eq '')) {
-        if (user_sign_is_valid($doc->{public_key}, $doc->{sign}, $doc->{code})) {
+        if (user_sign_is_valid($doc->{public_key}, $doc->{sign}, $doc->{code}, $cfg->{sha256signhash})) {
           $dbh->do('UPDATE registrations SET public_key = ? WHERE id = ?', undef, $doc->{public_key}, $id);
           $dbh->commit;
         } else {
@@ -645,7 +646,7 @@ sub get_one_doc {
 	  my ($pub_key) = $c->fetchrow_array;
 	  $c->finish;
 
-	  if (user_sign_is_valid($pub_key, $doc->{sign}, $doc->{site}.":".$doc->{doc_id}.":".$doc_data.":".$doc_template)) {
+	  if (user_sign_is_valid($pub_key, $doc->{sign}, $doc->{site}.":".$doc->{doc_id}.":".$doc_data.":".$doc_template, $cfg->{sha256signhash})) {
 	    $dbh->do('UPDATE documents SET doc_sign = ?, signed = ? WHERE id = ?', undef, $doc->{sign}, 1, $doc->{doc_id});
 	    $dbh->commit;
 	  } else {
@@ -664,7 +665,7 @@ sub get_one_doc {
         $c->finish;
 
         if (!defined($sign_id) || ($sign_id eq '')) {
-          if (user_sign_is_valid($pub_key, $doc->{sign}, $doc->{site}.":".$doc->{doc_id}.":".$doc_data.":".$doc_template)) {
+          if (user_sign_is_valid($pub_key, $doc->{sign}, $doc->{site}.":".$doc->{doc_id}.":".$doc_data.":".$doc_template, $cfg->{sha256signhash})) {
             $dbh->do('INSERT INTO signs (doc_id, user_key_id, public_key, sign) VALUES (?, ?, ?, ?)', undef, $doc->{doc_id}, $pub_key_id, $pub_key, $doc->{sign});
             $dbh->commit;
           } else {
@@ -685,6 +686,7 @@ sub do_template
         header => 'b_header.tpl',
         contentsection => 'c_index.tpl',
         footer => 'b_footer.tpl',
+        cfg => $cfg,
     };
 
     foreach my $k (keys %$prms)

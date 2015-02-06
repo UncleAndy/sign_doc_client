@@ -275,9 +275,12 @@ h3.subscribe {
 }
 
 .block_info {
-    background: url('/images/block-bg2.png') #000 repeat-x;
+    background: url('/images/block-bg3.png') #000 repeat-x;
     height: 140px;
     text-decoration: none;
+    color: black;
+    margin-left: 8px;
+    margin-right: 8px;
 }
 .block_info_link {
     text-decoration: none;
@@ -288,7 +291,8 @@ h3.subscribe {
     text-align: center;
 }
 .block_info p {
-    padding: 4px;
+    padding: 8px;
+    text-align: center;
 }
 .block_info a {
     padding: 4px;
