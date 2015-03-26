@@ -494,10 +494,10 @@ HTMLEND
 sub generate_register_code {
   my ($size) = @_;
 
-  $size = 6 if !defined($size) || ($size eq '');
+  $size = 10 if !defined($size) || ($size eq '');
   
   my $sr = new String::Random;
-  $sr->{'A'} = [ 'a'..'z' ];
+  $sr->{'A'} = [ '0'..'9' ];
   
   my $code = '';
   do {
