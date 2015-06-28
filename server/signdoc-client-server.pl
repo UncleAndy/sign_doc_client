@@ -107,7 +107,7 @@ while (my $query = new CGI::Fast) {
   if ($uri =~ /^(.+)\?/) {
     $uri = $1;
   };
-  
+
   switch ($uri) {
     case '/' {
       do_template($query, 'karkas.tpl', { contentsection => 'c_index.tpl' });
@@ -377,6 +377,7 @@ SQL
     
     # Далее - интерфейс взаимодействия с приложением
     case '/sign_reg' {
+      my $result = {status => 0};
       print $query->header(-type=>'application/json',-charset=>'UTF-8');
 
       # Получаем регистрацию подписи, проверяем и регистрируем ее
@@ -395,13 +396,15 @@ SQL
           $dbh->commit;
         } else {
           warn "Bad sign for REGISTER direct ".$reg_doc->{code};
+          $result->{status} = 500;
+          $result->{errstr} = "Bad sign for REGISTER direct ".$reg_doc->{code};
         };
       };
       
-      my $result = {status => 0};
       print js::to_json($result);
     }
     case '/sign' {
+      my $result = {status => $status};
       print $query->header(-type=>'application/json',-charset=>'UTF-8');
 
       # Получаем подпись, проверяем и регистрируем ее
@@ -409,9 +412,11 @@ SQL
       my $postdata = $query->param('POSTDATA');
       my $sign_doc = js::to_hash($postdata);
 
-      get_one_doc($sign_doc);
+      my $status, $errstr, $dbgstr = get_one_doc($sign_doc);
 
-      my $result = {status => 0};
+      $result->{errstr} = $errstr if (defined($errstr) && ($errstr ne ''));
+      $result->{dbgstr} = $dbgstr if (defined($dbgstr) && ($dbgstr ne ''));
+      
       print js::to_json($result);
     }
     case '/get_doc' {
@@ -616,6 +621,9 @@ sub get_all_docs {
 
 sub get_one_doc {
   my ($doc) = @_;
+  my $status = 0;
+  my $errstr = '';
+  my $dbg = '';
 
   switch ($doc->{type}) {
     case 'REGISTER' {
@@ -630,6 +638,8 @@ sub get_one_doc {
           $dbh->commit;
         } else {
           warn "Bad sign for REGISTER ".$doc->{code};
+          $status = 500;
+          $errstr = "Bad sign for REGISTER ".$doc->{code};
         };
       };
     };
@@ -651,6 +661,9 @@ sub get_one_doc {
 	    $dbh->commit;
 	  } else {
 	    warn "Bad SIGN for document ".$doc->{doc_id};
+            $status = 500;
+            $errstr = "Bad SIGN for document ".$doc->{doc_id};
+            $dbg = "PUBKEY:\n".$pub_key."\nSIGN:\n".$doc->{sign}."\nDATA:\n".$doc->{site}.":".$doc->{doc_id}.":".$doc_data.":".$doc_template;
 	  };
 	};
       } else {
@@ -670,11 +683,14 @@ sub get_one_doc {
             $dbh->commit;
           } else {
             warn "Bad SIGN for document ".$doc->{doc_id};
+            $status = 500;
+            $errstr = "Bad SIGN for document ".$doc->{doc_id};
           };
         };
       };
     };
   };
+  return($status, $errstr, $dbg);
 };
 
 sub do_template
