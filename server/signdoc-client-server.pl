@@ -404,7 +404,7 @@ SQL
       print js::to_json($result);
     }
     case '/sign' {
-      my $result = {status => $status};
+      my $result = {};
       print $query->header(-type=>'application/json',-charset=>'UTF-8');
 
       # Получаем подпись, проверяем и регистрируем ее
@@ -412,8 +412,9 @@ SQL
       my $postdata = $query->param('POSTDATA');
       my $sign_doc = js::to_hash($postdata);
 
-      my $status, $errstr, $dbgstr = get_one_doc($sign_doc);
+      my ($status, $errstr, $dbgstr) = get_one_doc($sign_doc);
 
+      $result->{status} = $status;
       $result->{errstr} = $errstr if (defined($errstr) && ($errstr ne ''));
       $result->{dbgstr} = $dbgstr if (defined($dbgstr) && ($dbgstr ne ''));
       
